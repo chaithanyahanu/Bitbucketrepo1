@@ -1,0 +1,40 @@
+name: Build & Deploy FastAPI Docker App to Azure Web App
+
+on:
+  push:
+    branches:
+      - main  # or your deployment branch
+
+env:
+  AZURE_WEBAPP_NAME: pythonwebap34
+  AZURE_ACR_NAME: pythoncodereg.azurecr.io
+  IMAGE_NAME: pythonapi
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v3
+
+    - name: Log in to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Log in to ACR
+      run: az acr login --name ${{ env.AZURE_ACR_NAME }}
+
+    - name: Build and Push Docker Image
+      run: |
+        docker build -t ${{ env.AZURE_ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }} .
+        docker push ${{ env.AZURE_ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+    - name: Deploy to Azure Web App
+      run: |
+        az webapp config container set \
+          --name ${{ env.AZURE_WEBAPP_NAME }} \
+          --resource-group <your-resource-group> \
+          --docker-custom-image-name ${{ env.AZURE_ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+          --docker-registry-server-url https://${{ env.AZURE_ACR_NAME }}.azurecr.io
