@@ -7,7 +7,7 @@ on:
 
 env:
   AZURE_WEBAPP_NAME: pythonwebap34
-  AZURE_ACR_NAME: pythoncodereg.azurecr.io
+  AZURE_ACR_NAME: pythoncodereg
   IMAGE_NAME: pythonapi
 
 jobs:
